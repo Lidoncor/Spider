@@ -41,25 +41,60 @@ public class CrawlerService {
         this.locationRepository = locationRepository;
         this.linkBetweenURLRepository = linkBetweenURLRepository;
 
-        webClient = new WebClient(); // гдет надо будет закрыть
+        webClient = new WebClient();
         webClient.setJavaScriptErrorListener(new SilentJavaScriptErrorListener());
         webClient.setCssErrorHandler(new SilentCssErrorHandler());
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-        webClient.getOptions().setTimeout(3000);
+        webClient.getOptions().setTimeout(1000);
     }
 
-    public Document getPage(URL url) throws IOException {
-        HtmlPage myPage = webClient.getPage(url.getValue());
+    public void crawl(Set<String> urls, int depth) {
+        Set<String> nextPages = new HashSet<>();
+
+        for (int i = 0; i < depth; i++) {
+            System.out.println("DEPTH " + i);// todo remove
+            for (String url : urls) {
+                System.out.println("NOW " + url);// todo remove
+                if (isIndexed(url)) {
+                    System.out.println("INDEXED " + url); // todo remove
+                    continue;
+                }
+
+                URL urlEntity = saveURL(url);
+
+                Document document;
+                try {
+                    document = getPage(url);
+                    nextPages.addAll(getLinks(document, urlEntity));
+                } catch (Exception ex) {
+                    continue;
+                }
+
+                indexPage(document, urlEntity);
+
+            }
+
+            urls.addAll(nextPages);
+            nextPages.clear();
+
+        }
+        System.out.println("DONE"); // todo remove
+        webClient.close();
+    }
+
+
+    public Document getPage(String url) throws IOException {
+        HtmlPage myPage = webClient.getPage(url);
         return Jsoup.parse(myPage.asXml());
     }
 
-    public Queue<URL> getLinks(Document document, URL url) throws URISyntaxException {
+    public Set<String> getLinks(Document document, URL url) throws URISyntaxException {
         URI uri = new URI(url.getValue());
         String domain = uri.getHost();
 
-        Queue<URL> urls = new LinkedList<>();
+        Set<String> urls = new HashSet<>();
         Elements aTags = document.select("a");
 
         for (Element aTag : aTags) {
@@ -67,58 +102,60 @@ public class CrawlerService {
 
             if (aTag.hasAttr("href") && !aTag.attr("href").equals("")) {
                 link = aTag.attr("href");
-            } else continue;
+            } else {
+                continue;
+            }
 
             if (link.charAt(0) == '/') {
                 link = "https://" + domain + link;
             }
 
-            URL URLEntity = getURL(link);
+            if (isIndexed(link)) {
+                continue;
+            }
 
-            linkBetweenURLRepository.save(new LinkBetweenURL(url, URLEntity));
+            URL url_test = saveURL(link);
 
-            urls.offer(URLEntity);
+            linkBetweenURLRepository.save(new LinkBetweenURL(url, url_test));
+
+            //URL URLEntity = getOrCreateURL(link);
+
+            //linkBetweenURLRepository.save(new LinkBetweenURL(url, URLEntity));
+
+            urls.add(link);
 
         }
 
         return urls;
     }
 
-    public URL getURL(String url) {
-        URL curUrl = urlRepository.findByValue(url);
-        if (curUrl == null) {
-            curUrl = new URL(url);
-            urlRepository.save(curUrl);
-        }
-        return curUrl;
+    public URL saveURL(String url) {
+        URL urlEntity = new URL(url);
+        urlRepository.save(urlEntity);
+        return urlEntity;
     }
 
     public String getText(Document document) {
         String bodyText = document.select("body").text();
-        bodyText = bodyText.replaceAll("[^\\p{IsCyrillic}+]", " "); // what
+        bodyText = bodyText.replaceAll("[^\\p{IsCyrillic}+]", " ");
         return bodyText;
     }
 
     public void indexPage(Document document, URL url) {
         StringTokenizer stringTokenizer = new StringTokenizer(getText(document));
-        Set<Word> newWords = new HashSet<>();
-
         for (int position = 0; position < stringTokenizer.countTokens(); position++) {
             String wordToken = stringTokenizer.nextToken();
             Word word = wordRepository.findByValue(wordToken);
             if (word == null) {
                 word = new Word(wordToken);
-                newWords.add(word);
             }
             word.getLocation().add(new Location(url, word, position));
             wordRepository.save(word);
         }
-
-        wordRepository.saveAll(newWords);
     }
 
-    public boolean isIndexed(URL url) {
-        return locationRepository.existsByUrl(url);
+    public boolean isIndexed(String url) {
+        return locationRepository.existsByUrlValue(url);
     }
 
 }
