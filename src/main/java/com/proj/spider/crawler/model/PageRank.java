@@ -6,22 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Getter
 @Setter
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
 @Entity
-@Table(name = "word")
-public class Word {
+@Table(name = "page_rank")
+public class PageRank {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private final String value;
+    @Column(name = "url_id")
+    private final Integer urlId;
 
-    @OneToMany(mappedBy = "word", cascade = CascadeType.MERGE)
-    private Set<Location> location = new HashSet<>();
+    @Column(name = "score")
+    private final Double score;
 }

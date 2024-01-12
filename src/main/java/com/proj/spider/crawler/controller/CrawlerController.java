@@ -1,17 +1,14 @@
 package com.proj.spider.crawler.controller;
 
 import com.proj.spider.crawler.service.CrawlerService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.transaction.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
 @RestController
 @RequestMapping("/crawler")
 public class CrawlerController {
-
     CrawlerService crawlerService;
 
     public CrawlerController(CrawlerService crawlerService) {
@@ -19,9 +16,9 @@ public class CrawlerController {
     }
 
     @GetMapping("/crawl")
-    public void crawl(@RequestParam(value = "urls", required = true) Set<String> url,
-                      @RequestParam(value = "depth", required = true) int depth) {
+    @Transactional
+    public void crawl(@RequestParam(value = "urls") Set<String> url,
+                      @RequestParam(value = "depth") int depth) {
         crawlerService.crawl(url, depth);
     }
-
 }

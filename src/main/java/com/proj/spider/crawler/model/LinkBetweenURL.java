@@ -6,14 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "link_between_url")
 @Getter
 @Setter
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
+@Entity
+@Table(name = "link_between_url")
 public class LinkBetweenURL {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -25,5 +24,4 @@ public class LinkBetweenURL {
     @ManyToOne
     @JoinColumn(name = "to_url_id")
     private final URL toURL;
-
 }

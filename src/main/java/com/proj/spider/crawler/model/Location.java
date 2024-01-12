@@ -6,14 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "location")
 @Getter
 @Setter
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
+@Entity
+@Table(name = "location")
 public class Location {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -27,5 +26,4 @@ public class Location {
     private final Word word;
 
     private final Integer position;
-
 }
