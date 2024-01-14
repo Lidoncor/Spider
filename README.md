@@ -1,9 +1,9 @@
 # Spider
 Web crawler: модули индексации и поиска. Поисковый робот, который обходит заданные веб-страницы и индексирует их содержимое в БД.
-- [ ] Сделать поиск по содержимому БД.
+- [x] Сделать поиск по содержимому БД.
 
 # Структура БД
-![image](https://github.com/Lidoncor/Spider/assets/87908043/2bd7c4e8-bbd1-4a7c-aa48-aa2d5a41e727)
+<img src="https://github.com/Lidoncor/Spider/assets/87908043/2bd7c4e8-bbd1-4a7c-aa48-aa2d5a41e727" width="300" height="600">
 
 Таблицы:
 1.	word - проиндексированные слова:
